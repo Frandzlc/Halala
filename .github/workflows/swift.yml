@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: Halala
+
 jobs:
   build:
     runs-on: macos-15
@@ -32,7 +36,7 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             build | tee build.log | grep -E "error:|warning: unable|BUILD (SUCCEEDED|FAILED)" || true
-          test -d build/Build/Products/Release-iphoneos/Halala.app || { tail -n 80 build.log; exit 1; }
+          test -d build/Build/Products/Release-iphoneos/Halala.app || { grep -E "error:" build.log | head -40; tail -n 60 build.log; exit 1; }
 
       - name: Package IPA
         run: |
@@ -45,11 +49,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Halala-ipa
-          path: Halala.ipa
+          path: Halala/Halala.ipa
 
       - name: Upload build log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
-          path: build.log
+          path: Halala/build.log
